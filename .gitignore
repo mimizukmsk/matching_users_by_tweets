@@ -1,6 +1,4 @@
-/config.py
 __pycache__/
 tmp/
 .vscode/
-proto/
-vim.exe.stackdump
+/.env
