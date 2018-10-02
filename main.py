@@ -150,9 +150,9 @@ def get_diff_avg(data):
 @app.route('/', methods=['GET'])
 def show_toppage():
     # tmpディレクトリ消去
-    tmp_files = glob('tmp/*.json')
-    for file in tmp_files:
-        remove(file)
+    # tmp_files = glob('tmp/*.json')
+    # for file in tmp_files:
+    #     remove(file)
 
     return render_template('index.html',)
 
@@ -173,13 +173,19 @@ def show_result():
     big5 = {}
     for user in users:
         try:
-            tweets = get_user_tweets(user)
-            tweets = get_shaped_tweets(tweets)
-            tweets_conv_json(tweets, user)
+            if not exists(join(json_folder, get_file_name('tw', user))):
+                tweets = get_user_tweets(user)
+                tweets = get_shaped_tweets(tweets)
+                tweets_conv_json(tweets, user)
+            else:
+                print('tweetあるよ')
         except (api.TwitterHTTPError):
             error = 'ユーザーが見つかりませんでした。もう一度入力してください。'
             return render_template('index.html', error=error)
-        get_insights_analytics(user)
+        if not exists(join(json_folder, get_file_name('an', user))):
+            get_insights_analytics(user)
+        else:
+            print('analyzedあるよ')
         big5[user] = get_big5(user)
 
     big5_diff = get_big5_diff(big5, users)
@@ -188,11 +194,19 @@ def show_result():
 
     # グラフにデータを渡す
     ja_labels = ['開放性', '真面目さ', '外向性', '協調性', '精神安定性']
-    values = []
-    for value in big5_diff_percent.values():
-        values.append(value)
+    user_val = [val * 100 for val in big5[users[0]].values()]
+    target_val = [val * 100 for val in big5[users[1]].values()]
+    match_val = [val for val in big5_diff_percent.values()]
 
-    return render_template('result.html', values=values, labels=ja_labels, avg=big5_diff_avg)
+    return render_template(
+        'result.html',
+        match_val=match_val,
+        user_val=user_val,
+        target_val=target_val,
+        labels=ja_labels,
+        users=users,
+        avg=big5_diff_avg
+    )
 
 if __name__ == "__main__":
     app.run()
