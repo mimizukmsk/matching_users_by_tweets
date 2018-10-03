@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-import sys, json, re
+import json, re
 import collections as cl
 import codecs
 from os import mkdir, remove
@@ -15,16 +15,16 @@ import config
 app = Flask(__name__)
 
 # Twitter API 初期設定
-CK = config.get_consumer_key()
-CS = config.get_consumer_secret()
-AT = config.get_access_token()
-AS = config.get_access_secret()
+CK = config.CONSUMER_KEY
+CS = config.CONSUMER_SECRET
+AT = config.ACCESS_TOKEN
+AS = config.ACCESS_SECRET
 twitter = Twitter(auth=OAuth(AT, AS, CK, CS))
 
 # Watson Personality Insights API 初期設定
-UN = config.get_username()
-PS = config.get_password()
-personality_insights = PersonalityInsightsV3(version='2017-10-13', username=UN, password=PS)
+UN = config.USER_NAME
+PW = config.PASSWORD
+personality_insights = PersonalityInsightsV3(version='2017-10-13', username=UN, password=PW)
 
 # json一時ファイル格納場所
 json_folder = join(dirname(abspath('__file__')), 'tmp/')
