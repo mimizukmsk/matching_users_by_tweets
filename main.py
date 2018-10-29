@@ -107,9 +107,7 @@ def get_insights_analytics(user_name):
     with open(join(json_folder, get_file_name('tw', user_name)), 'r', encoding='utf-8_sig') as tweets_json:
         profile = personality_insights.profile(
             tweets_json.read(),
-            content_type='application/json',
-            raw_scores=True,
-            consumption_preferences=True
+            content_type='application/json'
         )
         with open(join(json_folder, get_file_name('an', user_name)), 'w') as fw:
             json.dump(profile, fw, indent=2)
