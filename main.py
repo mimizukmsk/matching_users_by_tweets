@@ -123,25 +123,25 @@ def get_big5(user_name):
     return big5
 
 # big5の差を取り出す
-def get_big5_diff(data, users_list):
-    diffs = cl.OrderedDict()
+def get_diff_raw(data, users_list):
+    diffs_raw = cl.OrderedDict()
     for status in data[users_list[0]].keys():
-        diffs[status] = abs(data[users_list[0]][status] - data[users_list[1]][status])
-    return diffs
+        diffs_raw[status] = abs(data[users_list[0]][status] - data[users_list[1]][status])
+    return diffs_raw
 
 # big5の差をパーセンテージに変換
 def get_diff_percent(data):
-    diff_percents = cl.OrderedDict()
+    diffs_percent = cl.OrderedDict()
     for status in data.keys():
-        diff_percents[status] = round(100 - data[status] * 100)
-    return diff_percents
+        diffs_percent[status] = round(100 - data[status] * 100)
+    return diffs_percent
 
 # big5の差の平均値を出す
 def get_diff_avg(data):
     sum = 0
     for diff in data.values():
         sum += diff
-    diff_avg = round(sum / len(data))
+    diff_avg = round((sum / len(data)) * 100)
     return diff_avg
 
 # Flaskルーティング
@@ -186,9 +186,9 @@ def show_result():
             print('analyzedあるよ')
         big5[user] = get_big5(user)
 
-    big5_diff = get_big5_diff(big5, users)
-    big5_diff_percent= get_diff_percent(big5_diff)
-    big5_diff_avg = get_diff_avg(big5_diff_percent)
+    big5_diff_raw = get_diff_raw(big5, users)
+    big5_diff_percent= get_diff_percent(big5_diff_raw)
+    big5_diff_avg = get_diff_avg(big5_diff_raw)
 
     # グラフにデータを渡す
     ja_labels = ['開放性', '真面目さ', '外向性', '協調性', '精神安定性']
