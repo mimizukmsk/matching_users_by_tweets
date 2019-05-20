@@ -1,26 +1,64 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="utf-8" />
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <title>診断結果</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="stylesheet" type="text/css" href="static/bootstrap.css" />
-  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.3.1/css/all.css" integrity="sha384-mzrmE5qonljUremFsqc01SB46JvROS7bZs3IO2EmfFsd15uHvIt+Y8vEf7N7fWAU" crossorigin="anonymous">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Suitter | AIを使ってTwitterを分析。よくわかる相性診断ツール</title>
+  <meta name="description" content="IBM Watsonを用いて、あなたと他の方のアカウントの性格一致度をツイートから診断します。日々の話のタネに、付き合い方のヒントに。あなたのTwitterライフをサポートします。">
+  <meta property="og:title" content="Suitter | AIを使ってTwitterを分析。よくわかる相性診断ツール">
+  <meta property="og:site_name" content="Suitter">
+  <meta property="og:description" content="IBM Watsonを用いて、あなたと他の方のアカウントの性格一致度をツイートから診断します。日々の話のタネに、付き合い方のヒントに。あなたのTwitterライフをサポートします。">
+  <meta property="og:image" content="<?php echo get_template_directory_uri(); ?>/img/about-ai.jpg">
+  <meta property="og:url" content="<?php echo home_url(); ?>/">
+  <meta property="og:type" content="article">
+  <meta property="twitter:card" content="summary_large_image">
 </head>
 <body>
-  <header class="header container text-center">
-    <div class="header__logo mt-3">
-      <h1 class="logo__title h2">
-        <a class="logo__link link" href="/"><i class="fab fa-twitter-square"></i> Twitter相性診断</a>
-      </h1>
+  <header>
+    <div class="header__left">
+      <h1 class="header__logo"><a href="">Suitter</a></h1>
+      <ul class="header__left-nav">
+        <li><a class="nav-link" href=" ((())) ">About</a></li>
+        <li><a class="nav-link" href=" ((())) ">News</a></li>
+        <li><a class="nav-link" href="#">Q&A</a></li>
+        <li><a class="nav-link" href="#">Support</a></li>
+      </ul>
+    </div>
+    <div class="header__right">
+      <ul class="header__right-nav">
+        <li><a class="line-icon" href="https://social-plugins.line.me/lineit/share?url= ((())) "><img src="<?php echo get_template_directory_uri(); ?>/img/line-icon.svg" alt="line"></a></li>
+        <li><a class="twitter-icon" href="http://twitter.com/share?url= ((())) &text=あなたも今すぐ診断してみませんか？"><i class="fab fa-twitter"></i></a></li>
+        <li><a class="btn" href="https://matching-users-by-tweets.herokuapp.com/">今すぐ使ってみる</a></li>
+      </ul>
+    </div>
+    <div class="header__menu">
+      <div class="menu__nav-button" id="nav-button">
+        <div class="nav-button__line"></div>
+        <div class="nav-button__line"></div>
+        <div class="nav-button__line"></div>
+      </div>
+      <ul class="menu__nav">
+        <li><a class="nav-link" href=" ((())) ">Top</a></li>
+        <li><a class="nav-link" href=" ((())) ">About</a></li>
+        <li><a class="nav-link" href=" ((())) ">News</a></li>
+        <li><a class="nav-link" href="#">Q&A</a></li>
+        <li><a class="nav-link" href="#">Support</a></li>
+        <li>
+          <ul class="menu__share">
+            <li class="share__li"><a class="line-icon" href="https://social-plugins.line.me/lineit/share?url= ((())) "><img src=" ((())) /img/line-icon.svg" alt="line"></a></li>
+            <li class="share__li"><a class="twitter-icon" href="http://twitter.com/share?url= ((())) &text=あなたも今すぐ診断してみませんか？"><i class="fab fa-twitter"></i></a></li>
+          </ul>
+        </li>
+        <li><a class="btn" href="https://matching-users-by-tweets.herokuapp.com/">今すぐ使ってみる</a></li>
+      </ul>
     </div>
   </header>
   <main class="main container text-center">
     <div class="result row">
       <div class="result--matching col-md-6">
         <div class="result__graph">
-          <canvas class="graph" id="matchChart"></canvas>
+          <canvas class="graph" id="match-chart"></canvas>
         </div>
         <div class="result__text">
           <p class="text mb-1">総合的な性格一致度は</p>
@@ -29,7 +67,7 @@
       </div>
       <div class="result--users col-md-6">
         <div class="result__graph">
-          <canvas class="graph" id="usersChart"></canvas>
+          <canvas class="graph" id="users-chart"></canvas>
         </div>
         <div class="result__text">
           <p class="text">お互いのBig5</p>
@@ -44,87 +82,37 @@
     <script src="static/bootstrap.js"></script>
     <script src="static/Chart.js"></script>
     <script>
-      // bar chart data
-      var matchData = {
-        labels: [
-          {% for item in labels %}
-            "{{item}}",
-          {% endfor %}
-        ],
-        datasets: [{
-          label: "一致度",
-          backgroundColor: "rgba(255, 99, 132, 0.2)",
-          borderColor: "rgba(255, 99, 132, 1)",
-          data: [
-            {% for item in match_val %}
-              {{item}},
-            {% endfor %}
-          ]
-        }]
-      };
-      var usersData = {
-        labels: [
-          {% for item in labels %}
-            "{{item}}",
-          {% endfor %}
-        ],
-        datasets: [{
-          label: "{{users[0]}}",
-          backgroundColor: "rgba(99, 132, 255, 0.2)",
-          borderColor: "rgba(99, 132, 255, 1)",
-          data: [
-            {% for item in user_val %}
-              {{item}},
-            {% endfor %}
-          ]
-        }, {
-          label: "{{users[1]}}",
-          backgroundColor: "rgba(132, 255, 99, 0.2)",
-          borderColor: "rgba(132, 255, 99, 1)",
-          data: [
-            {% for item in target_val %}
-              {{item}},
-            {% endfor %}
-          ]
-        }]
-      };
-      var userschart = document.getElementById("usersChart");
-      var matchchart = document.getElementById("matchChart");
-      new Chart(matchchart, {
-        type: 'radar',
-        data: matchData,
-        options: {
-          scale: {
-            pointLabels: {
-              fontSize: 12
-            },
-            ticks: {
-              stepSize: 20,
-              beginAtZero: true,
-              min: 0,
-              max: 100,
-            }
-          }
-        }
-      });
-      new Chart(userschart, {
-        type: 'radar',
-        data: usersData,
-        options: {
-          scale: {
-            pointLabels: {
-              fontSize: 12
-            },
-            ticks: {
-              stepSize: 20,
-              beginAtZero: true,
-              min: 0,
-              max: 100,
-            }
-          }
-        }
-      });
+      // "matchData" data setter
+      var matchDataLabels = [
+        {% for item in labels %}
+          "{{item}}",
+        {% endfor %}
+      ]
+      var matchDataSets = [
+        {% for item in match_val %}
+          {{item}},
+        {% endfor %}
+      ]
+
+      // "userData" data setter
+      var usersName = ["{{users[0]}}", "{{users[1]}}"]
+      var userDataLabels = [
+        {% for item in labels %}
+          "{{item}}",
+        {% endfor %}
+      ]
+      var userDataUser1Sets = [
+        {% for item in user_val %}
+          {{item}},
+        {% endfor %}
+      ]
+      var userDataUser2Sets = [
+        {% for item in target_val %}
+          {{item}},
+        {% endfor %}
+      ]
     </script>
+    <script src="main.js"></script>
   </footer>
 </body>
 </html>
