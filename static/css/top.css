@@ -543,24 +543,117 @@ header .twitter-icon .fa-twitter {
 .hero__form {
   width: 50%;
   border-radius: 30px;
-  padding: 20px;
+  padding: 50px 0;
   background-color: #fff;
+  box-shadow: 0px 2px 7px 0px rgba(0, 0, 0, 0.35);
   text-align: center;
   font-size: 18px;
 }
 .hero__form p {
-  margin-bottom: 20px;
+  margin-bottom: 15px;
 }
 .hero__form input[type="text"] {
   width: 80%;
   padding: 10px;
-  border: 1px solid #001a36;
+  border: 1px solid #777;
   border-radius: 30px;
   text-align: center;
   font-size: 18px;
 }
-.hero__form .btn {
+.hero__form .form__message {
+  font-size: 25px;
+  font-weight: bold;
+}
+.hero__form .form__message--danger {
+  color: rgb(169, 68, 66);
+}
+.hero__form .form__message:after {
+  content: '';
+  display: block;
+  margin: 10px 0 50px;
+  height: 3px;
+  width: 100%;
+  background: linear-gradient(to right, #8d73ff, #59f5ff);
+}
+.hero__form .form__analyze-btn {
+  margin-top: 50px;
+}
+.form__analyze-btn .btn {
+  position: relative;
+  margin: 0 auto;
+}
+.form__analyze-btn #loading {
+  display: none;
+}
+.form__analyze-btn #loading.active {
+  position: absolute;
+  display: inline-block;
+  height: 25px;
+  transform: translate(160px, -37px);
+}
+
+@media only screen and (max-width: 768px) {
+  .hero__form {
+    width: 90%;
+  }
+}
+@media only screen and (max-width: 576px) {
+  .hero__form .form__message {
+    font-size: 22px;
+  }
+  .form__analyze-btn .btn {
+    width: 60%;
+  }
+  .form__analyze-btn #loading.active {
+    transform: translate(115px, -37px);
+  }
+}
+
+/* result */
+.hero__result {
+  width: 80%;
+  border-radius: 30px;
+  padding: 50px 0;
+  background-color: #fff;
+  box-shadow: 0px 2px 7px 0px rgba(0, 0, 0, 0.35);
+  text-align: center;
+  font-size: 18px;
+}
+.hero__result .hero__result-inner {
+  display: flex;
+  justify-content: space-around;
+}
+.hero__result .result__item {
+  width: 45%;
+}
+.hero__result .item__graph {
+  height: 50vh;
+}
+.hero__result .btn {
   margin: 0 auto;
 }
 
-/*# sourceMappingURL=top.css.map */
+@media only screen and (max-width: 768px) {
+  .hero__result .hero__result-inner {
+    flex-direction: column;
+    align-items: center;
+  }
+  .hero__result .result__item {
+    width: 70%;
+    margin-bottom: 30px;
+  }
+  .hero__result .item__graph {
+    height: 25vh;
+  }
+}
+
+@media only screen and (max-width: 576px) {
+  .hero__result {
+    width: 95%;
+    transform: translateY(3vh);
+    padding: 20px 0;
+  }
+  .hero__result .result__item {
+    width: 100%;
+  }
+}

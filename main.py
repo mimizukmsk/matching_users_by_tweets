@@ -162,7 +162,7 @@ def show_result():
     user_name = request.form['user_name']
     target_name = request.form['target_name']
     if not user_name or not target_name:
-        error = 'IDが未記入です。2つとも入力してください。'
+        error = 'IDが未記入です。|2つとも入力してください。'
         return render_template('index.html', error=error)
     users.append(user_name)
     users.append(target_name)
@@ -178,8 +178,9 @@ def show_result():
             else:
                 print('tweetあるよ')
         except (api.TwitterHTTPError):
-            error = 'ユーザーが見つかりませんでした。もう一度入力してください。'
+            error = 'ユーザーが見つかりませんでした。|もう一度入力してください。'
             return render_template('index.html', error=error)
+            break
         if not exists(join(json_folder, get_file_name('an', user))):
             get_insights_analytics(user)
         else:
@@ -207,4 +208,4 @@ def show_result():
     )
 
 if __name__ == "__main__":
-    app.run()
+    app.run(debug=True)

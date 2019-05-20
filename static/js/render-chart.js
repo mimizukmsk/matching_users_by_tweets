@@ -25,8 +25,8 @@ var usersData = {
 };
 
 // render target
-var matchChart = document.getElementById("match-chart");
-var usersChart = document.getElementById("users-chart");
+var matchChart = $("#match-chart");
+var usersChart = $("#users-chart");
 
 // render chart
 new Chart(matchChart, {
@@ -43,7 +43,9 @@ new Chart(matchChart, {
         min: 0,
         max: 100,
       }
-    }
+    },
+    responsive: true,
+    maintainAspectRatio: false
   }
 });
 new Chart(usersChart, {
@@ -60,6 +62,8 @@ new Chart(usersChart, {
         min: 0,
         max: 100,
       }
-    }
+    },
+    responsive: true,
+    maintainAspectRatio: false
   }
 });

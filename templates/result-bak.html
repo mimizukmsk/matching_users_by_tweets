@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang='ja'>
+<html lang="ja">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -13,9 +13,6 @@
   <meta property="og:url" content="<?php echo home_url(); ?>/">
   <meta property="og:type" content="article">
   <meta property="twitter:card" content="summary_large_image">
-  <link href="https://fonts.googleapis.com/css?family=Noto+Sans+JP&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.2/css/all.css" integrity="sha384-oS3vJWv+0UjzBfQzYUhtDYW+Pj2yciDJxpsK1OYPAYjqT085Qq/1cq5FLXAZQ7Ay" crossorigin="anonymous">
-  <link rel="stylesheet" href="/static/css/top.css">
 </head>
 <body>
   <header>
@@ -30,8 +27,9 @@
     </div>
     <div class="header__right">
       <ul class="header__right-nav">
-        <li><a class="line-icon" href="https://social-plugins.line.me/lineit/share?url= ((())) "><img src="/static/img/line-icon.svg" alt="line"></a></li>
+        <li><a class="line-icon" href="https://social-plugins.line.me/lineit/share?url= ((())) "><img src="<?php echo get_template_directory_uri(); ?>/img/line-icon.svg" alt="line"></a></li>
         <li><a class="twitter-icon" href="http://twitter.com/share?url= ((())) &text=あなたも今すぐ診断してみませんか？"><i class="fab fa-twitter"></i></a></li>
+        <li><a class="btn" href="https://matching-users-by-tweets.herokuapp.com/">今すぐ使ってみる</a></li>
       </ul>
     </div>
     <div class="header__menu">
@@ -48,39 +46,73 @@
         <li><a class="nav-link" href="#">Support</a></li>
         <li>
           <ul class="menu__share">
-            <li class="share__li"><a class="line-icon" href="https://social-plugins.line.me/lineit/share?url= ((())) "><img src="/static/img/line-icon.svg" alt="line"></a></li>
+            <li class="share__li"><a class="line-icon" href="https://social-plugins.line.me/lineit/share?url= ((())) "><img src=" ((())) /img/line-icon.svg" alt="line"></a></li>
             <li class="share__li"><a class="twitter-icon" href="http://twitter.com/share?url= ((())) &text=あなたも今すぐ診断してみませんか？"><i class="fab fa-twitter"></i></a></li>
           </ul>
         </li>
+        <li><a class="btn" href="https://matching-users-by-tweets.herokuapp.com/">今すぐ使ってみる</a></li>
       </ul>
     </div>
   </header>
-  <main>
-    <section class="hero">
-      <div class="hero__form">
-      {% if error %}
-        {% autoescape false %}
-        <p class="form__message form__message--danger">{{ error | replace('|', '<br class="message__br">') }}</p>
-        {% endautoescape %}
-      {% else %}
-        <p class="form__message">TwitterIDを入力してください</p>
-      {% endif %}
-        <form class="form__input" action="/result" method="post" name="userinputform">
-          <p><label for="user_name">あなたのTwitter ID</label></p>
-          <p><input type="text" name="user_name" class="input-form" id="user_name" placeholder="@を除いて入力"></p>
-          <p><label for="target_name">相手のTwitter ID</label></p>
-          <p><input type="text" name="target_name" id="target_name" placeholder="@を除いて入力"></p>
-          <div class="form__analyze-btn">
-            <input type="submit" value="診断する!" class="btn" id="btn-primary">
-            <img id="loading" src="/static/img/load.gif">
-          </div>
-        </form>
+  <main class="main container text-center">
+    <div class="result row">
+      <div class="result--matching col-md-6">
+        <div class="result__graph">
+          <canvas class="graph" id="match-chart"></canvas>
+        </div>
+        <div class="result__text">
+          <p class="text mb-1">総合的な性格一致度は</p>
+          <p><strong class="h3">{{avg}}%</strong>です</p>
+        </div>
       </div>
-    </section>
+      <div class="result--users col-md-6">
+        <div class="result__graph">
+          <canvas class="graph" id="users-chart"></canvas>
+        </div>
+        <div class="result__text">
+          <p class="text">お互いのBig5</p>
+        </div>
+      </div>
+    </div>
+    <footer class="main__footer container text-center">
+      <a href="/" class="btn btn-primary" role="button">トップに戻る</a>
+    </footer>
   </main>
   <footer>
-    <script src="static/js/jquery-3.3.1.min.js"></script>
-    <script src="static/js/animate.js"></script>
+    <script src="static/js/bootstrap.js"></script>
+    <script src="static/js/Chart.js"></script>
+    <script>
+      // "matchData" data setter
+      var matchDataLabels = [
+        {% for item in labels %}
+          "{{item}}",
+        {% endfor %}
+      ]
+      var matchDataSets = [
+        {% for item in match_val %}
+          {{item}},
+        {% endfor %}
+      ]
+
+      // "userData" data setter
+      var usersName = ["{{users[0]}}", "{{users[1]}}"]
+      var userDataLabels = [
+        {% for item in labels %}
+          "{{item}}",
+        {% endfor %}
+      ]
+      var userDataUser1Sets = [
+        {% for item in user_val %}
+          {{item}},
+        {% endfor %}
+      ]
+      var userDataUser2Sets = [
+        {% for item in target_val %}
+          {{item}},
+        {% endfor %}
+      ]
+    </script>
+    <script src="/static/js/render-chart.js"></script>
   </footer>
 </body>
 </html>
