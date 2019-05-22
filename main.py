@@ -3,27 +3,26 @@
 import json, re
 import collections as cl
 import codecs
-from os import mkdir, remove
+from os import mkdir, remove, environ
 from os.path import join, dirname, abspath, exists
 from glob import glob
 from twitter import Twitter, OAuth, api
 from watson_developer_cloud import PersonalityInsightsV3
 from flask import Flask, render_template, redirect, request
-import config
 
 # Flask初期設定
 app = Flask(__name__)
 
 # Twitter API 初期設定
-CK = config.CONSUMER_KEY
-CS = config.CONSUMER_SECRET
-AT = config.ACCESS_TOKEN
-AS = config.ACCESS_SECRET
+CK = environ['CONSUMER_KEY']
+CS = environ['CONSUMER_SECRET']
+AT = environ['ACCESS_TOKEN']
+AS = environ['ACCESS_SECRET']
 twitter = Twitter(auth=OAuth(AT, AS, CK, CS))
 
 # Watson Personality Insights API 初期設定
-UN = config.USER_NAME
-PW = config.PASSWORD
+UN = environ['USER_NAME']
+PW = environ['PASSWORD']
 personality_insights = PersonalityInsightsV3(version='2017-10-13', username=UN, password=PW)
 
 # json一時ファイル格納場所
@@ -32,7 +31,7 @@ if not exists(json_folder):
     mkdir(json_folder)
 
 # jsonファイル名を返す
-def get_file_name(type, user_name):
+def get_file_name(type: str, user_name: str):
     if type == 'tw':
         return 'tweets-' + user_name + '.json'
     elif type == 'an':
@@ -44,7 +43,7 @@ def get_file_name(type, user_name):
             print(e)
 
 # TwitterAPIからツイートを取得
-def get_user_tweets(screen_name):
+def get_user_tweets(screen_name: str):
     number_of_tweets = 0
     count = 200
     max_id = ''
@@ -61,7 +60,7 @@ def get_user_tweets(screen_name):
             number_of_tweets += 1
             tweets.append(tweet['full_text'])
             max_id = tweet['id']
-        # 取得件数より指定ユーザーのツイートが少ない場合
+        # 取得件数より指定ユーザーのツイートが少ない場合 (前後のツイートが同一)
         if tweets[-1] == tweets[-2]:
             del tweets[-1]
             break
@@ -75,7 +74,7 @@ def get_user_tweets(screen_name):
     return tweets
 
 # 余計な文字を省く・実体参照を文字に戻す
-def get_shaped_tweets(tweets_list):
+def get_shaped_tweets(tweets_list: list):
     shaped_tweets = []
     rm_replie = re.compile(r'@([A-Za-z0-9_]+)')
     rm_url = re.compile(r'https?://t.co/([A-Za-z0-9_]+)')
@@ -89,7 +88,7 @@ def get_shaped_tweets(tweets_list):
     return shaped_tweets
 
 # WatsonAPI呼び出し用にjson形式"tweets.json"に整形
-def tweets_conv_json(tweets_list, user_name):
+def tweets_conv_json(tweets_list: list, user_name: str):
     tweets_json = {}
     tweets_json['contentItems'] = []
     for tweet in tweets_list:
@@ -103,7 +102,7 @@ def tweets_conv_json(tweets_list, user_name):
     print(get_file_name('tw', user_name) + 'が生成されました')
 
 # 生成したtweets.jsonをもとにWatsonAPI呼び出し
-def get_insights_analytics(user_name):
+def get_insights_analytics(user_name: str):
     with open(join(json_folder, get_file_name('tw', user_name)), 'r', encoding='utf-8_sig') as tweets_json:
         profile = personality_insights.profile(
             tweets_json.read(),
@@ -114,7 +113,7 @@ def get_insights_analytics(user_name):
         print(get_file_name('an', user_name) + 'が生成されました')
 
 # big5のpercentile抽出
-def get_big5(user_name):
+def get_big5(user_name: str):
     with open(join(json_folder, get_file_name('an', user_name)), 'r') as analyzed_json:
         json_data = json.load(analyzed_json)
         big5 = cl.OrderedDict()
@@ -123,89 +122,93 @@ def get_big5(user_name):
     return big5
 
 # big5の差を取り出す
-def get_diff_raw(data, users_list):
+def get_diff_raw(data: dict, users_list: list):
     diffs_raw = cl.OrderedDict()
     for status in data[users_list[0]].keys():
         diffs_raw[status] = abs(data[users_list[0]][status] - data[users_list[1]][status])
     return diffs_raw
 
 # big5の差をパーセンテージに変換
-def get_diff_percent(data):
+def get_diff_percent(data: dict):
     diffs_percent = cl.OrderedDict()
     for status in data.keys():
         diffs_percent[status] = round(100 - data[status] * 100)
     return diffs_percent
 
 # big5の差の平均値を出す
-def get_diff_avg(data):
+def get_diff_avg(data: dict):
     sum = 0
     for diff in data.values():
         sum += diff
     diff_avg = round((sum / len(data)) * 100)
     return diff_avg
 
-# Flaskルーティング
-@app.route('/', methods=['GET'])
-def show_toppage():
-    # tmpディレクトリ消去
-    # tmp_files = glob('tmp/*.json')
-    # for file in tmp_files:
-    #     remove(file)
 
-    return render_template('index.html',)
-
-@app.route('/result', methods=['GET', 'POST'])
-def show_result():
-    error = None
-    # ユーザー定義
-    users = []
-    user_name = request.form['user_name']
-    target_name = request.form['target_name']
-    if not user_name or not target_name:
-        error = 'IDが未記入です。|2つとも入力してください。'
-        return render_template('index.html', error=error)
-    users.append(user_name)
-    users.append(target_name)
-
-    # メイン処理
-    big5 = {}
-    for user in users:
-        try:
-            if not exists(join(json_folder, get_file_name('tw', user))):
-                tweets = get_user_tweets(user)
-                tweets = get_shaped_tweets(tweets)
-                tweets_conv_json(tweets, user)
-            else:
-                print('tweetあるよ')
-        except (api.TwitterHTTPError):
-            error = 'ユーザーが見つかりませんでした。|もう一度入力してください。'
-            return render_template('index.html', error=error)
-            break
-        if not exists(join(json_folder, get_file_name('an', user))):
-            get_insights_analytics(user)
-        else:
-            print('analyzedあるよ')
-        big5[user] = get_big5(user)
-
-    big5_diff_raw = get_diff_raw(big5, users)
-    big5_diff_percent= get_diff_percent(big5_diff_raw)
-    big5_diff_avg = get_diff_avg(big5_diff_raw)
-
-    # グラフにデータを渡す
-    ja_labels = ['開放性', '真面目さ', '外向性', '協調性', '精神安定性']
-    user_val = [val * 100 for val in big5[users[0]].values()]
-    target_val = [val * 100 for val in big5[users[1]].values()]
-    match_val = [val for val in big5_diff_percent.values()]
-
-    return render_template(
-        'result.html',
-        match_val=match_val,
-        user_val=user_val,
-        target_val=target_val,
-        labels=ja_labels,
-        users=users,
-        avg=big5_diff_avg
-    )
-
+# ルーティング部
 if __name__ == "__main__":
+
+    # Flaskルーティング
+    @app.route('/', methods=['GET'])
+    def show_toppage():
+        # tmpディレクトリ消去
+        # tmp_files = glob('tmp/*.json')
+        # for file in tmp_files:
+        #     remove(file)
+
+        return render_template('index.html',)
+
+    @app.route('/result', methods=['GET', 'POST'])
+    def show_result():
+        error = None
+        # ユーザー定義
+        users = []
+        user_name = request.form['user_name']
+        target_name = request.form['target_name']
+        if not user_name or not target_name:
+            error = 'IDが未記入です。|2つとも入力してください。'
+            return render_template('index.html', error=error)
+        users.append(user_name)
+        users.append(target_name)
+
+        # メイン処理
+        big5 = {}
+        for user in users:
+            try:
+                if not exists(join(json_folder, get_file_name('tw', user))):
+                    tweets = get_user_tweets(user)
+                    tweets = get_shaped_tweets(tweets)
+                    tweets_conv_json(tweets, user)
+                else:
+                    print('tweetあるよ')
+            except (api.TwitterHTTPError, IndexError):
+                print(api.TwitterHTTPError)
+                error = 'ユーザーが見つかりませんでした。|もう一度入力してください。'
+                return render_template('index.html', error=error)
+                break
+            if not exists(join(json_folder, get_file_name('an', user))):
+                get_insights_analytics(user)
+            else:
+                print('analyzedあるよ')
+            big5[user] = get_big5(user)
+
+        big5_diff_raw = get_diff_raw(big5, users)
+        big5_diff_percent= get_diff_percent(big5_diff_raw)
+        big5_diff_avg = get_diff_avg(big5_diff_raw)
+
+        # グラフにデータを渡す
+        ja_labels = ['開放性', '真面目さ', '外向性', '協調性', '精神安定性']
+        user_val = [val * 100 for val in big5[users[0]].values()]
+        target_val = [val * 100 for val in big5[users[1]].values()]
+        match_val = [val for val in big5_diff_percent.values()]
+
+        return render_template(
+            'result.html',
+            match_val=match_val,
+            user_val=user_val,
+            target_val=target_val,
+            labels=ja_labels,
+            users=users,
+            avg=big5_diff_avg
+        )
+
     app.run(debug=True)
